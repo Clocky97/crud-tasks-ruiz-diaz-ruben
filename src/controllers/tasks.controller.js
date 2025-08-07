@@ -1,6 +1,6 @@
-import { Character } from "../models/character.model.js";
+import { Tasks } from "../models/tasks.model.js";
 
-export const getCharacter = async (req, res) =>{
+export const getTasks = async (req, res) =>{
     const id = res.params.id();
     const character = await Character.findByPk(id);
     if (!character){
@@ -9,12 +9,12 @@ export const getCharacter = async (req, res) =>{
     res.json(character);
 };
 
-export const getAllCharacters = async (req, res) => {
+export const getAllTasks = async (req, res) => {
     const character = await Character.findAll();
     res.json(character);
 };
 
-export const createCharacters = async (req, res) => {
+export const createTasks = async (req, res) => {
     const {name, ki, race, gender, description} = req.body;
     if (name === "" || ki === "" || race === "" || gender === "" || description === "") {
         return res.json({
