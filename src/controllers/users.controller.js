@@ -28,7 +28,7 @@ export const createUsers = async (req, res) => {
       return res.status(400).json({ msg: "Ese nombre ya está en uso." });
     }
 
-    const tasks = await Users.create(req.body);
+    const users = await Users.create(req.body);
 
     res.status(201).json(users);
     } catch (error) {
