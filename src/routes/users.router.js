@@ -13,6 +13,6 @@ usersRoutes.get("/users/:id", getUsers);
 usersRoutes.put("/users/:id", updateUsers);
 usersRoutes.post("/users", createUsers);
 usersRoutes.get("/users", getAllUsers);
-usersRoutes.delete("/users", deleteUsers);
+usersRoutes.delete("/users/:id", deleteUsers);
 
 export default usersRoutes;

@@ -15,7 +15,7 @@ export const getAllTasks = async (req, res) => {
 };
 
 export const createTasks = async (req, res) => {
-    const {title, description} = req.body;
+    const {title, description, isComplete} = req.body;
     if (title === "" || description === "") {
         return res.json({
             msg: "Título y descripción son obligatorios",
@@ -50,12 +50,12 @@ export const createTasks = async (req, res) => {
   }};
 
 export const updateTasks = async (req, res) => {
-    const { id} = req.params;
-    let {title, description, isComplete} = req.body;
+    const {id} = req.params;
+    const {title, description, isComplete} = req.body;
 
     try {
-        const task = await Tasks.findByPk(id);
-        if (!task) {
+        const tasks = await Tasks.findByPk(id);
+        if (!tasks) {
             return res.status(404).json({ msg: "Tarea no encontrada" });
         }
         if (title !== undefined) {
@@ -63,7 +63,7 @@ export const updateTasks = async (req, res) => {
                 return res.status(400).json({ msg: "El título no puede estar vacío" });
             }
             const existing = await Tasks.findOne({ 
-                where: { title, id: { [Op.ne]: id } }
+                where: { title }
             });
             if (existing) {
                 return res.status(400).json({ msg: "Ese título ya está en uso" });
@@ -87,13 +87,13 @@ export const updateTasks = async (req, res) => {
                 return res.status(400).json({ msg: "isComplete debe ser booleano" });
             }
         }
-        await task.update({
-            title: title ?? task.title,
-            description: description ?? task.description,
-            isComplete: isComplete ?? task.isComplete
+        await tasks.update({
+            title: title ?? tasks.title,
+            description: description ?? tasks.description,
+            isComplete: isComplete ?? tasks.isComplete
         });
 
-        res.json(task);
+        res.json(tasks);
 
     } catch (error) {
         console.error(error);
@@ -104,12 +104,12 @@ export const deleteTasks = async (req, res) => {
     const {id} = req.params;
 
     try {
-        const task = await Tasks.findByPk(id);
+        const tasks = await Tasks.findByPk(id);
 
-        if (!task) {
+        if (!tasks) {
             return res.status(404).json({msg: "Tarea no encontrada"});
         }
-        await task.destroy();
+        await tasks.destroy();
 
         res.json({ msg: "Tarea eliminada"});
 
