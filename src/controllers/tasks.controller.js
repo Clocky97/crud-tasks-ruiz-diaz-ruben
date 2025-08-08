@@ -49,7 +49,7 @@ export const createTasks = async (req, res) => {
     res.status(500).json({ msg: "Error al crear" });
   }};
 
-export const updateTask = async (req, res) => {
+export const updateTasks = async (req, res) => {
     const { id} = req.params;
     let {title, description, isComplete} = req.body;
 
@@ -100,7 +100,7 @@ export const updateTask = async (req, res) => {
         res.status(500).json({ msg: "Error al actualizar la tarea" });
     }
 };
-export const deleteTask = async (req, res) => {
+export const deleteTasks = async (req, res) => {
     const {id} = req.params;
 
     try {
