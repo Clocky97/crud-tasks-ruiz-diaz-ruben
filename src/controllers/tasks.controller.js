@@ -1,47 +1,121 @@
 import { Tasks } from "../models/tasks.model.js";
 
 export const getTasks = async (req, res) =>{
-    const id = res.params.id();
-    const character = await Character.findByPk(id);
-    if (!character){
-        console.log("No se encontró un usuario con esa ID.");
+    const {id} = res.params.id();
+    const tasks = await Tasks.findByPk(id);
+    if (!tasks){
+        console.log("No se encontraron tareas.");
     }
-    res.json(character);
+    res.json(tasks);
 };
 
 export const getAllTasks = async (req, res) => {
-    const character = await Character.findAll();
-    res.json(character);
+    const tasks = await Tasks.findAll();
+    res.json(tasks);
 };
 
 export const createTasks = async (req, res) => {
-    const {name, ki, race, gender, description} = req.body;
-    if (name === "" || ki === "" || race === "" || gender === "" || description === "") {
+    const {title, description} = req.body;
+    if (title === "" || description === "") {
         return res.json({
-            msg: "Hay campos  vacíos",
+            msg: "Título y descripción son obligatorios",
         });
     }
-    if (isNaN(ki)) {
-        return res.json({
-            msg: "El KI ingresado no es válido."
-        });
+    if (isComplete !== undefined) {
+    if (typeof isComplete === "string") {
+        if (isComplete.toLowerCase() === "true") {
+            isComplete = true;
+        } else if (isComplete.toLowerCase() === "false") {
+            isComplete = false;
+        } else {
+            return res.status(400).json({ msg: "isComplete debe ser true o false" });
+        }
+        } else if (typeof isComplete !== "boolean") {
+            return res.status(400).json({ msg: "isComplete debe ser booleano" });
+        }
     }
-  if (gender !== "male" && gender !== "female") {
-    return res.status(400).json({ msg: "El género debe ser 'male' o 'female'" });
-  }
-
   try {
-    const existing = await Character.findOne({ where: { name } });
+    const existing = await Tasks.findOne({ where: { title } });
 
     if (existing) {
       return res.status(400).json({ msg: "Ese nombre ya está en uso." });
     }
 
+    const tasks = await Tasks.create(req.body);
 
-    const character = await Character.create(req.body);
-
-    res.status(201).json(character);
+    res.status(201).json(tasks);
     } catch (error) {
     console.error(error);
-    res.status(500).json({ msg: "Error al crear personaje" });
+    res.status(500).json({ msg: "Error al crear" });
   }};
+
+export const updateTask = async (req, res) => {
+    const { id} = req.params;
+    let {title, description, isComplete} = req.body;
+
+    try {
+        const task = await Tasks.findByPk(id);
+        if (!task) {
+            return res.status(404).json({ msg: "Tarea no encontrada" });
+        }
+        if (title !== undefined) {
+            if (!title || title.trim() === "") {
+                return res.status(400).json({ msg: "El título no puede estar vacío" });
+            }
+            const existing = await Tasks.findOne({ 
+                where: { title, id: { [Op.ne]: id } }
+            });
+            if (existing) {
+                return res.status(400).json({ msg: "Ese título ya está en uso" });
+            }
+        }
+        if (description !== undefined) {
+            if (!description || description.trim() === "") {
+                return res.status(400).json({ msg: "La descripción no puede estar vacía" });
+            }
+        }
+        if (isComplete !== undefined) {
+            if (typeof isComplete === "string") {
+                if (isComplete.toLowerCase() === "true") {
+                    isComplete = true;
+                } else if (isComplete.toLowerCase() === "false") {
+                    isComplete = false;
+                } else {
+                    return res.status(400).json({ msg: "isComplete debe ser true o false" });
+                }
+            } else if (typeof isComplete !== "boolean") {
+                return res.status(400).json({ msg: "isComplete debe ser booleano" });
+            }
+        }
+        await task.update({
+            title: title ?? task.title,
+            description: description ?? task.description,
+            isComplete: isComplete ?? task.isComplete
+        });
+
+        res.json(task);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al actualizar la tarea" });
+    }
+};
+export const deleteTask = async (req, res) => {
+    const {id} = req.params;
+
+    try {
+        const task = await Tasks.findByPk(id);
+
+        if (!task) {
+            return res.status(404).json({msg: "Tarea no encontrada"});
+        }
+        await task.destroy();
+
+        res.json({ msg: "Tarea eliminada"});
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({msg: "Error al eliminar la tarea" });
+    }
+};
+
