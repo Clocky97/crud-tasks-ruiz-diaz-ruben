@@ -8,7 +8,7 @@ export const getAllUsers = async (req, res) => {
       include: {
         model: Tasks,
         as: "tasks",
-        attributes: ["id", "title", "description", "isComplete"],
+        attributes: ["id", "title", "description", "is_complete"],
       },
     });
 
@@ -27,7 +27,7 @@ export const getUserById = async (req, res) => {
       include: {
         model: Tasks,
         as: "tasks",
-        attributes: ["id", "title", "description", "isComplete"],
+        attributes: ["id", "title", "description", "is_complete"],
       },
     });
 

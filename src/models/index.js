@@ -15,11 +15,9 @@ Tasks.belongsTo(Users, {
 
 Users.hasOne(Profile, {
   foreignKey: "user_id",
-  as: "userProfile",
 });
 Profile.belongsTo(Users, {
   foreignKey: "user_id",
-  as: "profileOwner",
 });
 
 Users.belongsToMany(Role, {
@@ -30,7 +28,7 @@ Users.belongsToMany(Role, {
 Role.belongsToMany(Users, {
   through: UserRoles,
   foreignKey: "role_id",
-  as: "usersWithRole",
+  as: "users",
 });
 
 export { sequelize, Users, Tasks, Profile, Role, UserRoles };
