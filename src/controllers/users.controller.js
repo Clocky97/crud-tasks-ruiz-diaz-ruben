@@ -1,102 +1,117 @@
-import { Users } from "../models/users.model.js";
+import { Users } from "../models/User.js";
+import { Tasks } from "../models/Task.js";
 
-export const getUsers = async (req, res) =>{
-    const {id} = res.params.id();
-    const users = await Users.findByPk(id);
-    if (!users){
-        console.log("No se encontraron usuarios.");
-    }
-    res.json(users);
-};
-
+//Obtener todos los usuarios con tareas
 export const getAllUsers = async (req, res) => {
-    const users = await Users.findAll();
-    res.json(users);
+  try {
+    const users = await Users.findAll({
+      include: {
+        model: Tasks,
+        as: "tasks",
+        attributes: ["id", "title", "description", "isComplete"],
+      },
+    });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al obtener los usuarios" });
+  }
 };
 
-export const createUsers = async (req, res) => {
-    const {name, email, password} = req.body;
-    if (name === "" || email === "" || password === "") {
-        return res.json({
-            msg: "No pueden haber campos vacíos",
-        });
-    }
+//Obtener un usuario por ID con sus tareas
+export const getUserById = async (req, res) => {
+  const { id } = req.params;
   try {
-    const existing = await Users.findOne({ where: { name } });
+    const user = await Users.findByPk(id, {
+      include: {
+        model: Tasks,
+        as: "tasks",
+        attributes: ["id", "title", "description", "isComplete"],
+      },
+    });
 
-    if (existing) {
-      return res.status(400).json({ msg: "Ese nombre ya está en uso." });
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
-    const tasks = await Users.create(req.body);
-
-    res.status(201).json(users);
-    } catch (error) {
+    res.status(200).json(user);
+  } catch (error) {
     console.error(error);
-    res.status(500).json({ msg: "Error al crear" });
-  }};
-  
-  export const updateUsers = async (req, res) => {
-      const { id} = req.params;
-      const {name, email, password} = req.body;
-  
-      try {
-          const users = await Users.findByPk(id);
-          if (!users) {
-              return res.status(404).json({ msg: "Ususario no encontrado" });
-          }
-          if (name !== undefined) {
-              if (!name || name.trim() === "") {
-                  return res.status(400).json({ msg: "Su Nombre no puede estar vacío" });
-              }
+    res.status(500).json({ msg: "Error al obtener el usuario" });
+  }
+};
 
-              if (email !== undefined) {
-              if (!email || email.trim() === "") {
-                  return res.status(400).json({ msg: "Ingrese su email" });
-              }
-              const existing = await Users.findOne({ 
-                  where: { email } 
-              });
-              if (existing) {
-                  return res.status(400).json({ msg: "Ese email ya está en uso" });
-              }
-                 
-          }
-          if (password !== undefined) {
-              if (!password || password.trim() === "") {
-                  return res.status(400).json({ msg: "Por favor ingrese una contraseña" });
-              }
-          }
+//Crear usuario
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-          }
-          await users.update({
-              name: name ?? users.name,
-              email: email ?? users.email,
-              password: password ?? users.password
-          });
-  
-          res.json(users);
-  
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({ msg: "Error al actualizar" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ msg: "Todos los campos son obligatorios" });
+    }
+
+    // Validar que el email no exista
+    const existing = await Users.findOne({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ msg: "Ese email ya está en uso" });
+    }
+
+    const user = await Users.create({ name, email, password });
+
+    res.status(201).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al crear el usuario" });
+  }
+};
+
+//Actualizar usuario
+export const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password } = req.body;
+
+  try {
+    const user = await Users.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    if (email) {
+      const existing = await Users.findOne({ where: { email } });
+      if (existing && existing.id !== user.id) {
+        return res.status(400).json({ msg: "Ese email ya está en uso" });
       }
-  };
-  export const deleteUsers = async (req, res) => {
-      const {id} = req.params;
-  
-      try {
-          const users = await Users.findByPk(id);
-  
-          if (!users) {
-              return res.status(404).json({msg: "Nombre no encontrado"});
-          }
-          await users.destroy();
-  
-          res.json({ msg: "Nombre eliminado"});
-  
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({msg: "Error al eliminar" });
-      }
-  };
+    }
+
+    await user.update({
+      name: name ?? user.name,
+      email: email ?? user.email,
+      password: password ?? user.password,
+    });
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al actualizar el usuario" });
+  }
+};
+
+//Eliminar usuario
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await Users.findByPk(id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    await user.destroy();
+    res.status(200).json({ msg: "Usuario eliminado" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al eliminar el usuario" });
+  }
+};

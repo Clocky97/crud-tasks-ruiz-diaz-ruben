@@ -1,121 +1,177 @@
-import { Tasks } from "../models/tasks.model.js";
+import { Tasks } from "../models/Task.js";
+import { Users } from "../models/User.js";
 
-export const getTasks = async (req, res) =>{
-    const {id} = res.params.id();
-    const tasks = await Tasks.findByPk(id);
-    if (!tasks){
-        console.log("No se encontraron tareas.");
-    }
-    res.json(tasks);
-};
-
+//Obtener todas las tareas
 export const getAllTasks = async (req, res) => {
-    const tasks = await Tasks.findAll();
-    res.json(tasks);
-};
-
-export const createTasks = async (req, res) => {
-    const {title, description, isComplete} = req.body;
-    if (title === "" || description === "") {
-        return res.json({
-            msg: "Título y descripción son obligatorios",
-        });
-    }
-    if (isComplete !== undefined) {
-    if (typeof isComplete === "string") {
-        if (isComplete.toLowerCase() === "true") {
-            isComplete = true;
-        } else if (isComplete.toLowerCase() === "false") {
-            isComplete = false;
-        } else {
-            return res.status(400).json({ msg: "isComplete debe ser true o false" });
-        }
-        } else if (typeof isComplete !== "boolean") {
-            return res.status(400).json({ msg: "isComplete debe ser booleano" });
-        }
-    }
   try {
-    const existing = await Tasks.findOne({ where: { title } });
+    const tasks = await Tasks.findAll({
+      include: {
+        model: Users,
+        as: "user",
+        attributes: ["id", "name", "email"],
+      },
+    });
 
-    if (existing) {
-      return res.status(400).json({ msg: "Ese nombre ya está en uso." });
-    }
-
-    const tasks = await Tasks.create(req.body);
-
-    res.status(201).json(tasks);
-    } catch (error) {
+    res.status(200).json(tasks);
+  } catch (error) {
     console.error(error);
-    res.status(500).json({ msg: "Error al crear" });
-  }};
-
-export const updateTasks = async (req, res) => {
-    const {id} = req.params;
-    const {title, description, isComplete} = req.body;
-
-    try {
-        const tasks = await Tasks.findByPk(id);
-        if (!tasks) {
-            return res.status(404).json({ msg: "Tarea no encontrada" });
-        }
-        if (title !== undefined) {
-            if (!title || title.trim() === "") {
-                return res.status(400).json({ msg: "El título no puede estar vacío" });
-            }
-            const existing = await Tasks.findOne({ 
-                where: { title }
-            });
-            if (existing) {
-                return res.status(400).json({ msg: "Ese título ya está en uso" });
-            }
-        }
-        if (description !== undefined) {
-            if (!description || description.trim() === "") {
-                return res.status(400).json({ msg: "La descripción no puede estar vacía" });
-            }
-        }
-        if (isComplete !== undefined) {
-            if (typeof isComplete === "string") {
-                if (isComplete.toLowerCase() === "true") {
-                    isComplete = true;
-                } else if (isComplete.toLowerCase() === "false") {
-                    isComplete = false;
-                } else {
-                    return res.status(400).json({ msg: "isComplete debe ser true o false" });
-                }
-            } else if (typeof isComplete !== "boolean") {
-                return res.status(400).json({ msg: "isComplete debe ser booleano" });
-            }
-        }
-        await tasks.update({
-            title: title ?? tasks.title,
-            description: description ?? tasks.description,
-            isComplete: isComplete ?? tasks.isComplete
-        });
-
-        res.json(tasks);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Error al actualizar la tarea" });
-    }
+    res.status(500).json({ msg: "Error al obtener las tareas" });
+  }
 };
-export const deleteTasks = async (req, res) => {
-    const {id} = req.params;
 
-    try {
-        const tasks = await Tasks.findByPk(id);
+//Obtener una tarea por ID con su usuario
+export const getTaskById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Tasks.findByPk(id, {
+      include: {
+        model: Users,
+        as: "user",
+        attributes: ["id", "name", "email"],
+      },
+    });
 
-        if (!tasks) {
-            return res.status(404).json({msg: "Tarea no encontrada"});
-        }
-        await tasks.destroy();
-
-        res.json({ msg: "Tarea eliminada"});
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({msg: "Error al eliminar la tarea" });
+    if (!task) {
+      return res.status(404).json({ msg: "Tarea no encontrada" });
     }
+
+    res.status(200).json(task);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al obtener la tarea" });
+  }
 };
+
+//Crear nueva tarea
+export const createTask = async (req, res) => {
+  try {
+    let { title, description, isComplete, user_id } = req.body;
+
+    if (!title || !description || !user_id) {
+      return res
+        .status(400)
+        .json({ msg: "Título, descripción y user_id son obligatorios" });
+    }
+
+    // Verificar que el usuario exista
+    const user = await Users.findByPk(user_id);
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    // Validar is_complete
+    if (is_complete !== undefined) {
+      if (typeof is_complete === "string") {
+        is_complete =
+          is_complete.toLowerCase() === "true"
+            ? true
+            : is_complete.toLowerCase() === "false"
+            ? false
+            : null;
+        if (is_complete === null) {
+          return res
+            .status(400)
+            .json({ msg: "is_complete debe ser true o false" });
+        }
+      } else if (typeof is_complete !== "boolean") {
+        return res
+          .status(400)
+          .json({ msg: "is_complete debe ser booleano" });
+      }
+    }
+
+    // Verificar que el titulo sea unico
+    const existing = await Tasks.findOne({ where: { title } });
+    if (existing) {
+      return res.status(400).json({ msg: "Ese título ya está en uso." });
+    }
+
+    const task = await Tasks.create({ title, description, isComplete, user_id });
+
+    res.status(201).json(task);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al crear la tarea" });
+  }
+};
+
+//Actualizar una tarea
+export const updateTask = async (req, res) => {
+  const { id } = req.params;
+  let { title, description, isComplete } = req.body;
+
+  try {
+    const task = await Tasks.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ msg: "Tarea no encontrada" });
+    }
+
+    // Validaciones como las del al create
+    if (title !== undefined) {
+      if (!title || title.trim() === "") {
+        return res.status(400).json({ msg: "El título no puede estar vacío" });
+      }
+      const existing = await Tasks.findOne({ where: { title } });
+      if (existing && existing.id !== task.id) {
+        return res.status(400).json({ msg: "Ese título ya está en uso" });
+      }
+    }
+
+    if (description !== undefined && description.trim() === "") {
+      return res
+        .status(400)
+        .json({ msg: "La descripción no puede estar vacía" });
+    }
+
+    if (isComplete !== undefined) {
+      if (typeof isComplete === "string") {
+        isComplete =
+          isComplete.toLowerCase() === "true"
+            ? true
+            : isComplete.toLowerCase() === "false"
+            ? false
+            : null;
+        if (isComplete === null) {
+          return res
+            .status(400)
+            .json({ msg: "isComplete debe ser true o false" });
+        }
+      } else if (typeof isComplete !== "boolean") {
+        return res
+          .status(400)
+          .json({ msg: "isComplete debe ser booleano" });
+      }
+    }
+
+    await task.update({
+      title: title ?? task.title,
+      description: description ?? task.description,
+      isComplete: isComplete ?? task.isComplete,
+    });
+
+    res.status(200).json(task);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al actualizar la tarea" });
+  }
+};
+
+//Eliminar tarea
+export const deleteTask = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Tasks.findByPk(id);
+
+    if (!task) {
+      return res.status(404).json({ msg: "Tarea no encontrada" });
+    }
+
+    await task.destroy();
+    res.status(200).json({ msg: "Tarea eliminada" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al eliminar la tarea" });
+  }
+};
+
 
