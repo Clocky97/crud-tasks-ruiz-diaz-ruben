@@ -3,10 +3,10 @@ import { DataTypes } from "sequelize";
 
 export const Tasks = sequelize.define("tasks", {
   id: {
-    primaryKey: true,
-    allowNull: false,
     type: DataTypes.INTEGER,
+    primaryKey: true,
     autoIncrement: true,
+    allowNull: false,
   },
   title: {
     type: DataTypes.STRING(100),
@@ -17,12 +17,8 @@ export const Tasks = sequelize.define("tasks", {
     type: DataTypes.STRING(100),
     allowNull: false,
   },
-  isComplete: {
+  is_complete: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-  },
-  user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
   },
 });

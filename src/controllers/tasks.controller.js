@@ -45,7 +45,7 @@ export const getTaskById = async (req, res) => {
 //Crear nueva tarea
 export const createTask = async (req, res) => {
   try {
-    let { title, description, isComplete, user_id } = req.body;
+    let { title, description, is_complete, user_id } = req.body;
 
     if (!title || !description || !user_id) {
       return res
@@ -86,19 +86,19 @@ export const createTask = async (req, res) => {
       return res.status(400).json({ msg: "Ese título ya está en uso." });
     }
 
-    const task = await Tasks.create({ title, description, isComplete, user_id });
+    const task = await Tasks.create({ title, description, is_complete, user_id });
 
     res.status(201).json(task);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al crear la tarea" });
-  }
+  console.error("Error en createTask:", error);
+  res.status(500).json({ msg: "Error al crear la tarea", error: error.message });
+}
 };
 
 //Actualizar una tarea
 export const updateTask = async (req, res) => {
   const { id } = req.params;
-  let { title, description, isComplete } = req.body;
+  let { title, description, is_complete } = req.body;
 
   try {
     const task = await Tasks.findByPk(id);
@@ -123,30 +123,30 @@ export const updateTask = async (req, res) => {
         .json({ msg: "La descripción no puede estar vacía" });
     }
 
-    if (isComplete !== undefined) {
-      if (typeof isComplete === "string") {
-        isComplete =
-          isComplete.toLowerCase() === "true"
+    if (is_complete !== undefined) {
+      if (typeof is_complete === "string") {
+        is_complete =
+          is_complete.toLowerCase() === "true"
             ? true
-            : isComplete.toLowerCase() === "false"
+            : is_complete.toLowerCase() === "false"
             ? false
             : null;
-        if (isComplete === null) {
+        if (is_complete === null) {
           return res
             .status(400)
-            .json({ msg: "isComplete debe ser true o false" });
+            .json({ msg: "is_complete debe ser true o false" });
         }
-      } else if (typeof isComplete !== "boolean") {
+      } else if (typeof is_complete !== "boolean") {
         return res
           .status(400)
-          .json({ msg: "isComplete debe ser booleano" });
+          .json({ msg: "is_complete debe ser booleano" });
       }
     }
 
     await task.update({
       title: title ?? task.title,
       description: description ?? task.description,
-      isComplete: isComplete ?? task.isComplete,
+      is_complete: is_complete ?? task.is_complete,
     });
 
     res.status(200).json(task);

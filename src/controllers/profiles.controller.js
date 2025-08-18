@@ -1,10 +1,10 @@
-import { Profile } from "../models/profiles.js";
+import { Profile } from "../models/profiles.model.js";
 import { Users } from "../models/users.model.js";
 
 // Crear perfil
 export const createProfile = async (req, res) => {
   try {
-    const { user_id, bio, avatar_url } = req.body;
+    const { user_id } = req.body;
 
     if (!user_id) {
       return res.status(400).json({ msg: "user_id es obligatorio" });
@@ -16,9 +16,6 @@ export const createProfile = async (req, res) => {
     const existing = await Profile.findOne({ where: { user_id } });
     if (existing)
       return res.status(400).json({ msg: "El usuario ya tiene un perfil" });
-
-    const profile = await Profile.create({ user_id, bio, avatar_url });
-    res.status(201).json(profile);
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error al crear perfil" });

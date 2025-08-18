@@ -1,5 +1,5 @@
-import { Users } from "../models/User.js";
-import { Tasks } from "../models/Task.js";
+import { Users } from "../models/users.model.js";
+import { Tasks } from "../models/tasks.model.js";
 
 //Obtener todos los usuarios con tareas
 export const getAllUsers = async (req, res) => {
