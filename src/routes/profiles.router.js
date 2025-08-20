@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { createProfile, 
-         getAllProfiles, 
-         getProfileById,
-         updateProfile,
-         deleteProfile,
+import {
+  getProfileById,
+  getAllProfiles,
+  createProfile,
+  updateProfile,
+  deleteProfile,
 } from "../controllers/profiles.controller.js";
 
 const profilesRoutes = Router();

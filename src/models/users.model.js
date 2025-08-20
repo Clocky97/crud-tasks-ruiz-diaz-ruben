@@ -1,25 +1,30 @@
-import { sequelize } from "../config/database.js";
 import { DataTypes } from "sequelize";
+import { sequelize } from "../config/database.js";
+import { Jobs } from "./jobs.model.js";
+import { UserJobs } from "./userJobs.model.js";
 
 export const Users = sequelize.define("users", {
   id: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     autoIncrement: true,
-    allowNull: false,
+    primaryKey: true,
   },
-  name: {
-    type: DataTypes.STRING(100),
+  username: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
   email: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING,
     allowNull: false,
     unique: true,
   },
   password: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-  },
+    type: DataTypes.STRING,
+    allowNull: false
+  }
 });
+
+Users.belongsToMany(Jobs, { through: UserJobs, foreignKey: "user_id", as: "jobs" });
+
+
 

@@ -1,104 +1,73 @@
-import { Profile, Users } from "../models/index.js"
+import { Profiles } from "../models/profiles.model.js";
+import { Users } from "../models/users.model.js";
+import { Jobs } from "../models/jobs.model.js";
 
-//Crear
-
+// Crear perfil
 export const createProfile = async (req, res) => {
   try {
-    const { user_id } = req.body;
+    const { bio, user_id, job_id } = req.body;
 
-    if (!user_id) {
-      return res.status(400).json({ msg:   "user_id es obligatorio" });
-    }
-
-    const user = await Users.findByPk(user_id);
-    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
-
-    const existing = await Profile.findOne({ where: { user_id } });
-    if (existing)
-      return res.status(400).json({ msg: "El usuario ya tiene un perfil" });
-
-    const profile = await Profile.create({ user_id });
+    const profile = await Profiles.create({ bio, user_id, job_id });
     res.status(201).json(profile);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al crear perfil" });
+    res.status(500).json({ msg: "Error al crear perfil", error });
   }
 };
 
-//Obtener
-
+// Obtener todos los perfiles
 export const getAllProfiles = async (req, res) => {
   try {
-    const profiles = await Profile.findAll({
-      include: { model: Users, as: "user", attributes: ["id", "name", "email"] }
+    const profiles = await Profiles.findAll({
+      include: [
+        { model: Users, as: "user" },
+        { model: Jobs, as: "job" },
+      ],
     });
-    res.status(200).json(profiles);
+    res.json(profiles);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener perfiles" });
+    res.status(500).json({ msg: "Error al obtener perfiles", error });
   }
 };
 
-//Obtener por ID
-
+// Obtener perfil por ID
 export const getProfileById = async (req, res) => {
-  const { id } = req.params;
   try {
-    const profile = await Profile.findByPk(id, {
-      include: { model: Users, as: "user", attributes: ["id", "name", "email"] },
+    const profile = await Profiles.findByPk(req.params.id, {
+      include: [
+        { model: Users, as: "user" },
+        { model: Jobs, as: "job" },
+      ],
     });
-
     if (!profile) return res.status(404).json({ msg: "Perfil no encontrado" });
-
-    res.status(200).json(profile);
+    res.json(profile);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener el perfil" });
+    res.status(500).json({ msg: "Error al obtener perfil", error });
   }
 };
 
-//Actualizar
-
+// Actualizar perfil
 export const updateProfile = async (req, res) => {
-  const { id } = req.params;
-  const { user_id } = req.body;
-
   try {
-    const profile = await Profile.findByPk(id);
+    const { job_id } = req.body;
+    const profile = await Profiles.findByPk(req.params.id);
     if (!profile) return res.status(404).json({ msg: "Perfil no encontrado" });
 
-    if (user_id) {
-      const user = await Users.findByPk(user_id);
-      if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
-
-      const existing = await Profile.findOne({ where: { user_id } });
-      if (existing && existing.id !== profile.id)
-        return res.status(400).json({ msg: "El usuario ya tiene un perfil" });
-
-      profile.user_id = user_id;
-    }
-
-    await profile.save();
-    res.status(200).json(profile);
+    await profile.update({ job_id });
+    res.json(profile);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al actualizar perfil" });
+    res.status(500).json({ msg: "Error al actualizar perfil", error });
   }
 };
 
-//Borrar
-
+// Eliminar perfil
 export const deleteProfile = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const profile = await Profile.findByPk(id);
+    const profile = await Profiles.findByPk(req.params.id);
     if (!profile) return res.status(404).json({ msg: "Perfil no encontrado" });
 
     await profile.destroy();
-    res.status(200).json({ msg: "Perfil eliminado" });
+    res.json({ msg: "Perfil eliminado" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al eliminar perfil" });
+    res.status(500).json({ msg: "Error al eliminar perfil", error });
   }
 };

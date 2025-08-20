@@ -1,117 +1,72 @@
 import { Users } from "../models/users.model.js";
+import { Profiles } from "../models/profiles.model.js";
 import { Tasks } from "../models/tasks.model.js";
 
-//Obtener todos los usuarios con tareas
+// Crear usuario
+export const createUser = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const user = await Users.create({ username, email, password });
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ msg: "Error al crear usuario", error });
+  }
+};
+
+// Obtener todos los usuarios
 export const getAllUsers = async (req, res) => {
   try {
     const users = await Users.findAll({
-      include: {
-        model: Tasks,
-        as: "tasks",
-        attributes: ["id", "title", "description", "is_complete"],
-      },
+      include: [
+        { model: Profiles, as: "profile" },
+        { model: Tasks, as: "tasks" },
+      ],
     });
-
-    res.status(200).json(users);
+    res.json(users);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener los usuarios" });
+    res.status(500).json({ msg: "Error al obtener usuarios", error });
   }
 };
 
-//Obtener un usuario por ID con sus tareas
+// Obtener usuario por ID
 export const getUserById = async (req, res) => {
-  const { id } = req.params;
   try {
-    const user = await Users.findByPk(id, {
-      include: {
-        model: Tasks,
-        as: "tasks",
-        attributes: ["id", "title", "description", "is_complete"],
-      },
+    const user = await Users.findByPk(req.params.id, {
+      include: [
+        { model: Profiles, as: "profile" },
+        { model: Tasks, as: "tasks" },
+      ],
     });
-
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
-
-    res.status(200).json(user);
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
+    res.json(user);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener el usuario" });
+    res.status(500).json({ msg: "Error al obtener usuario", error });
   }
 };
 
-//Crear usuario
-export const createUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ msg: "Todos los campos son obligatorios" });
-    }
-
-    // Validar que el email no exista
-    const existing = await Users.findOne({ where: { email } });
-    if (existing) {
-      return res.status(400).json({ msg: "Ese email ya está en uso" });
-    }
-
-    const user = await Users.create({ name, email, password });
-
-    res.status(201).json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al crear el usuario" });
-  }
-};
-
-//Actualizar usuario
+// Actualizar usuario
 export const updateUser = async (req, res) => {
-  const { id } = req.params;
-  const { name, email, password } = req.body;
-
   try {
-    const user = await Users.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
+    const { username, email, password } = req.body;
+    const user = await Users.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-    if (email) {
-      const existing = await Users.findOne({ where: { email } });
-      if (existing && existing.id !== user.id) {
-        return res.status(400).json({ msg: "Ese email ya está en uso" });
-      }
-    }
-
-    await user.update({
-      name: name ?? user.name,
-      email: email ?? user.email,
-      password: password ?? user.password,
-    });
-
-    res.status(200).json(user);
+    await user.update({ username, email, password });
+    res.json(user);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al actualizar el usuario" });
+    res.status(500).json({ msg: "Error al actualizar usuario", error });
   }
 };
 
-//Eliminar usuario
+// Eliminar usuario
 export const deleteUser = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const user = await Users.findByPk(id);
-
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
+    const user = await Users.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
     await user.destroy();
-    res.status(200).json({ msg: "Usuario eliminado" });
+    res.json({ msg: "Usuario eliminado" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al eliminar el usuario" });
+    res.status(500).json({ msg: "Error al eliminar usuario", error });
   }
 };
