@@ -20,17 +20,17 @@ export const Users = sequelize.define("users", {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
-  }
+    allowNull: false,
+  },
+  isDeleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
-Users.belongsToMany(Jobs, 
-  { through: UserJobs, 
-    foreignKey: "user_id", 
-    as: "jobs", 
-    onDelete: "CASCADE"
-  });
-
-
-
-
+Users.belongsToMany(Jobs, {
+  through: UserJobs,
+  foreignKey: "user_id",
+  as: "jobs",
+  onDelete: "CASCADE",
+});

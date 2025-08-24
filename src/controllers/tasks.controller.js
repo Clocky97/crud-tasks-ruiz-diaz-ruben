@@ -12,20 +12,26 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Obtener todas las tareas
+// Obtener todas las tareas (solo no eliminadas)
 export const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Tasks.findAll({ include: { model: Users, as: "user" } });
+    const tasks = await Tasks.findAll({
+      where: { isDeleted: false },
+      include: { model: Users, as: "user" },
+    });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ msg: "Error al obtener tareas", error });
   }
 };
 
-// Obtener tarea por ID
+// Obtener tarea por ID (solo si no está eliminada)
 export const getTaskById = async (req, res) => {
   try {
-    const task = await Tasks.findByPk(req.params.id, { include: { model: Users, as: "user" } });
+    const task = await Tasks.findOne({
+      where: { id: req.params.id, isDeleted: false },
+      include: { model: Users, as: "user" },
+    });
     if (!task) return res.status(404).json({ msg: "Tarea no encontrada" });
     res.json(task);
   } catch (error) {
@@ -33,11 +39,13 @@ export const getTaskById = async (req, res) => {
   }
 };
 
-// Actualizar tarea
+// Actualizar tarea (solo si no está eliminada)
 export const updateTask = async (req, res) => {
   try {
     const { title, description } = req.body;
-    const task = await Tasks.findByPk(req.params.id);
+    const task = await Tasks.findOne({
+      where: { id: req.params.id, isDeleted: false },
+    });
     if (!task) return res.status(404).json({ msg: "Tarea no encontrada" });
 
     await task.update({ title, description });
@@ -47,14 +55,16 @@ export const updateTask = async (req, res) => {
   }
 };
 
-// Eliminar tarea
+// Eliminación lógica de tarea
 export const deleteTask = async (req, res) => {
   try {
-    const task = await Tasks.findByPk(req.params.id);
+    const task = await Tasks.findOne({
+      where: { id: req.params.id, isDeleted: false },
+    });
     if (!task) return res.status(404).json({ msg: "Tarea no encontrada" });
 
-    await task.destroy();
-    res.json({ msg: "Tarea eliminada" });
+    await task.update({ isDeleted: true });
+    res.json({ msg: "Tarea eliminada lógicamente" });
   } catch (error) {
     res.status(500).json({ msg: "Error al eliminar tarea", error });
   }

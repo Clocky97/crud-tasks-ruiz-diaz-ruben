@@ -14,6 +14,3 @@ export const Jobs = sequelize.define("jobs", {
     allowNull: false,
   },
 });
-
-
-

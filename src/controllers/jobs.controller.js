@@ -15,7 +15,9 @@ export const createJob = async (req, res) => {
 // Obtener todos los oficios
 export const getAllJobs = async (req, res) => {
   try {
-    const jobs = await Jobs.findAll({ include: { model: Profiles, as: "profiles" } });
+    const jobs = await Jobs.findAll({
+      include: { model: Profiles, as: "profiles" },
+    });
     res.json(jobs);
   } catch (error) {
     res.status(500).json({ msg: "Error al obtener oficios", error });
@@ -25,7 +27,9 @@ export const getAllJobs = async (req, res) => {
 // Obtener oficio por ID
 export const getJobById = async (req, res) => {
   try {
-    const job = await Jobs.findByPk(req.params.id, { include: { model: Profiles, as: "profiles" } });
+    const job = await Jobs.findByPk(req.params.id, {
+      include: { model: Profiles, as: "profiles" },
+    });
     if (!job) return res.status(404).json({ msg: "oficio no encontrado" });
     res.json(job);
   } catch (error) {
