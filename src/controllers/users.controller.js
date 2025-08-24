@@ -1,102 +1,56 @@
 import { Users } from "../models/users.model.js";
+import { Profiles } from "../models/profiles.model.js";
+import { Tasks } from "../models/tasks.model.js";
 
-export const getUsers = async (req, res) =>{
-    const {id} = res.params.id();
-    const users = await Users.findByPk(id);
-    if (!users){
-        console.log("No se encontraron usuarios.");
-    }
-    res.json(users);
-};
-
-export const getAllUsers = async (req, res) => {
-    const users = await Users.findAll();
-    res.json(users);
-};
-
-export const createUsers = async (req, res) => {
-    const {name, email, password} = req.body;
-    if (name === "" || email === "" || password === "") {
-        return res.json({
-            msg: "No pueden haber campos vacíos",
-        });
-    }
+// Crear usuario
+export const createUser = async (req, res) => {
   try {
-    const existing = await Users.findOne({ where: { name } });
+    const { username, email, password } = req.body;
+    const user = await Users.create({ username, email, password });
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ msg: "Error al crear usuario", error });
+  }
+};
 
-    if (existing) {
-      return res.status(400).json({ msg: "Ese nombre ya está en uso." });
-    }
+// Obtener todos los usuarios
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await Users.findAll({
+      include: [
+        { model: Profiles, as: "profile" },
+        { model: Tasks, as: "tasks" },
+      ],
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ msg: "Error al obtener usuarios", error });
+  }
+};
 
-    const users = await Users.create(req.body);
+// Actualizar usuario
+export const updateUser = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const user = await Users.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-    res.status(201).json(users);
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al crear" });
-  }};
-  
-  export const updateUsers = async (req, res) => {
-      const { id} = req.params;
-      const {name, email, password} = req.body;
-  
-      try {
-          const users = await Users.findByPk(id);
-          if (!users) {
-              return res.status(404).json({ msg: "Ususario no encontrado" });
-          }
-          if (name !== undefined) {
-              if (!name || name.trim() === "") {
-                  return res.status(400).json({ msg: "Su Nombre no puede estar vacío" });
-              }
+    await user.update({ username, email, password });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ msg: "Error al actualizar usuario", error });
+  }
+};
 
-              if (email !== undefined) {
-              if (!email || email.trim() === "") {
-                  return res.status(400).json({ msg: "Ingrese su email" });
-              }
-              const existing = await Users.findOne({ 
-                  where: { email } 
-              });
-              if (existing) {
-                  return res.status(400).json({ msg: "Ese email ya está en uso" });
-              }
-                 
-          }
-          if (password !== undefined) {
-              if (!password || password.trim() === "") {
-                  return res.status(400).json({ msg: "Por favor ingrese una contraseña" });
-              }
-          }
+// Eliminar usuario
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await Users.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-          }
-          await users.update({
-              name: name ?? users.name,
-              email: email ?? users.email,
-              password: password ?? users.password
-          });
-  
-          res.json(users);
-  
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({ msg: "Error al actualizar" });
-      }
-  };
-  export const deleteUsers = async (req, res) => {
-      const {id} = req.params;
-  
-      try {
-          const users = await Users.findByPk(id);
-  
-          if (!users) {
-              return res.status(404).json({msg: "Nombre no encontrado"});
-          }
-          await users.destroy();
-  
-          res.json({ msg: "Nombre eliminado"});
-  
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({msg: "Error al eliminar" });
-      }
-  };
+    await user.destroy();
+    res.json({ msg: "Usuario eliminado" });
+  } catch (error) {
+    res.status(500).json({ msg: "Error al eliminar usuario", error });
+  }
+};
