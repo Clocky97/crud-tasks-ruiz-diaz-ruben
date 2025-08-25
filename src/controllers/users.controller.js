@@ -54,7 +54,7 @@ export const deleteUser = async (req, res) => {
     if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
     await user.update({ isDeleted: true });
-    res.json({ msg: "Usuario eliminado lógicamente" });
+    res.json({ msg: "Usuario eliminado" });
   } catch (error) {
     res.status(500).json({ msg: "Error al eliminar usuario", error });
   }
