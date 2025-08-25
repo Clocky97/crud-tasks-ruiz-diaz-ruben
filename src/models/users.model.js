@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
-import { Jobs } from "./jobs.model.js";
-import { UserJobs } from "./userJobs.model.js";
 
 export const Users = sequelize.define("users", {
   id: {
@@ -28,9 +26,3 @@ export const Users = sequelize.define("users", {
   },
 });
 
-Users.belongsToMany(Jobs, {
-  through: UserJobs,
-  foreignKey: "user_id",
-  as: "jobs",
-  onDelete: "CASCADE",
-});
