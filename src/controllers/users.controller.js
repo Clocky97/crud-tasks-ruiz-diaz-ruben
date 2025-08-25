@@ -29,7 +29,24 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Actualizar usuario
+// Obtener usuario por ID (solo si no está eliminado)
+export const getUserById = async (req, res) => {
+  try {
+    const user = await Users.findOne({
+      where: { id: req.params.id, isDeleted: false },
+      include: [
+        { model: Profiles, as: "profile" },
+        { model: Tasks, as: "tasks" },
+      ],
+    });
+    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ msg: "Error al obtener usuario", error });
+  }
+};
+
+// Actualizar usuario (solo si no está eliminado)
 export const updateUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -45,7 +62,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Eliminación lógica de usuario
+// Eliminacion de usuario
 export const deleteUser = async (req, res) => {
   try {
     const user = await Users.findOne({
