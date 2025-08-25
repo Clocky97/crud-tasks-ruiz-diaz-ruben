@@ -20,5 +20,15 @@ export const UserJobs = sequelize.define("user_jobs", {
   },
 });
 
-Jobs.belongsToMany(Users, { through: UserJobs, foreignKey: "job_id", as: "users" });
-Users.belongsToMany(Jobs, { through: UserJobs, foreignKey: "user_id", as: "jobs" });
+Jobs.belongsToMany(Users, {
+  through: UserJobs,
+  foreignKey: "job_id",
+  as: "users",
+  onDelete: "CASCADE",
+});
+Users.belongsToMany(Jobs, {
+  through: UserJobs,
+  foreignKey: "user_id",
+  as: "jobs",
+  onDelete: "CASCADE",
+});

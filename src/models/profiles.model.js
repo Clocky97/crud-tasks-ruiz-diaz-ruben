@@ -11,7 +11,7 @@ export const Profiles = sequelize.define("profiles", {
   },
   bio: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
   user_id: {
     type: DataTypes.INTEGER,
@@ -25,8 +25,23 @@ export const Profiles = sequelize.define("profiles", {
 });
 
 // Relaciones
-Profiles.belongsTo(Users, { foreignKey: "user_id", as: "user" });
-Profiles.belongsTo(Jobs, { foreignKey: "job_id", as: "job" });
-Users.hasOne(Profiles, { foreignKey: "user_id", as: "profile" });
-Jobs.hasMany(Profiles, { foreignKey: "job_id", as: "profiles" });
-
+Profiles.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+  onDelete: "CASCADE",
+});
+Profiles.belongsTo(Jobs, {
+  foreignKey: "job_id",
+  as: "job",
+  onDelete: "CASCADE",
+});
+Users.hasOne(Profiles, {
+  foreignKey: "user_id",
+  as: "profile",
+  onDelete: "CASCADE",
+});
+Jobs.hasMany(Profiles, {
+  foreignKey: "job_id",
+  as: "profiles",
+  onDelete: "CASCADE",
+});

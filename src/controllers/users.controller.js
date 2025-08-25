@@ -13,10 +13,11 @@ export const createUser = async (req, res) => {
   }
 };
 
-// Obtener todos los usuarios
+// Obtener todos los usuarios (solo los no eliminados)
 export const getAllUsers = async (req, res) => {
   try {
     const users = await Users.findAll({
+      where: { isDeleted: false },
       include: [
         { model: Profiles, as: "profile" },
         { model: Tasks, as: "tasks" },
@@ -32,7 +33,9 @@ export const getAllUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const user = await Users.findByPk(req.params.id);
+    const user = await Users.findOne({
+      where: { id: req.params.id, isDeleted: false },
+    });
     if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
     await user.update({ username, email, password });
@@ -42,14 +45,16 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Eliminar usuario
+// Eliminación lógica de usuario
 export const deleteUser = async (req, res) => {
   try {
-    const user = await Users.findByPk(req.params.id);
+    const user = await Users.findOne({
+      where: { id: req.params.id, isDeleted: false },
+    });
     if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-    await user.destroy();
-    res.json({ msg: "Usuario eliminado" });
+    await user.update({ isDeleted: true });
+    res.json({ msg: "Usuario eliminado lógicamente" });
   } catch (error) {
     res.status(500).json({ msg: "Error al eliminar usuario", error });
   }

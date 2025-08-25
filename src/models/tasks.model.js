@@ -20,8 +20,16 @@ export const Tasks = sequelize.define("tasks", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  isDeleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 // Relación User -> Tasks
-Users.hasMany(Tasks, { foreignKey: "user_id", as: "tasks" });
+Users.hasMany(Tasks, {
+  foreignKey: "user_id",
+  as: "tasks",
+  onDelete: "CASCADE",
+});
 Tasks.belongsTo(Users, { foreignKey: "user_id", as: "user" });

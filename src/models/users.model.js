@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
-import { Jobs } from "./jobs.model.js";
-import { UserJobs } from "./userJobs.model.js";
 
 export const Users = sequelize.define("users", {
   id: {
@@ -20,11 +18,11 @@ export const Users = sequelize.define("users", {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
-  }
+    allowNull: false,
+  },
+  isDeleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
-
-Users.belongsToMany(Jobs, { through: UserJobs, foreignKey: "user_id", as: "jobs" });
-
-
 
